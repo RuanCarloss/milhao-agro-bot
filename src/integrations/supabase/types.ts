@@ -14,7 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      n8n_settings: {
+        Row: {
+          api_key: string
+          base_url: string
+          created_at: string
+          updated_at: string
+          user_id: string
+          workflow_id: string
+        }
+        Insert: {
+          api_key: string
+          base_url: string
+          created_at?: string
+          updated_at?: string
+          user_id: string
+          workflow_id: string
+        }
+        Update: {
+          api_key?: string
+          base_url?: string
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+          workflow_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
