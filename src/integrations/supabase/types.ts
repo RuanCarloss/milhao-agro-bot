@@ -41,6 +41,45 @@ export type Database = {
         }
         Relationships: []
       }
+      nocodb_settings: {
+        Row: {
+          api_token: string
+          base_url: string
+          created_at: string
+          date_field: string
+          message_field: string
+          recipient_field: string | null
+          table_id: string
+          updated_at: string
+          user_id: string
+          view_id: string | null
+        }
+        Insert: {
+          api_token: string
+          base_url: string
+          created_at?: string
+          date_field?: string
+          message_field?: string
+          recipient_field?: string | null
+          table_id: string
+          updated_at?: string
+          user_id: string
+          view_id?: string | null
+        }
+        Update: {
+          api_token?: string
+          base_url?: string
+          created_at?: string
+          date_field?: string
+          message_field?: string
+          recipient_field?: string | null
+          table_id?: string
+          updated_at?: string
+          user_id?: string
+          view_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
