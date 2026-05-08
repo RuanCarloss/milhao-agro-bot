@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Bot, LayoutDashboard, Settings, LogOut, Loader2 } from "lucide-react";
+import { Bot, LayoutDashboard, MessageSquare, Settings, LogOut, Loader2 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 
@@ -23,7 +23,8 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   const navItems = [
     { to: "/", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/settings", label: "Conexão n8n", icon: Settings },
+    { to: "/messages", label: "Mensagens", icon: MessageSquare },
+    { to: "/settings", label: "Conexões", icon: Settings },
   ] as const;
 
   return (
@@ -83,6 +84,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </div>
           <div className="flex gap-1">
             <Link to="/" className={`px-3 py-1.5 rounded-md text-sm ${path === "/" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>Dashboard</Link>
+            <Link to="/messages" className={`px-3 py-1.5 rounded-md text-sm ${path === "/messages" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>Msgs</Link>
             <Link to="/settings" className={`px-3 py-1.5 rounded-md text-sm ${path === "/settings" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>Config</Link>
           </div>
         </header>
