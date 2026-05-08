@@ -231,10 +231,10 @@ function Messages() {
           <div className="h-64">
             <ResponsiveContainer>
               <BarChart data={dailySeries}>
-                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.3 0.025 240 / 0.4)" />
-                <XAxis dataKey="day" stroke="oklch(0.68 0.02 230)" fontSize={11} />
-                <YAxis stroke="oklch(0.68 0.02 230)" fontSize={11} allowDecimals={false} />
-                <Tooltip contentStyle={{ background: "oklch(0.21 0.025 240)", border: "1px solid oklch(0.3 0.025 240)", borderRadius: 8 }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="oklch(0.35 0.04 50 / 0.4)" />
+                <XAxis dataKey="day" stroke="oklch(0.7 0.02 60)" fontSize={11} />
+                <YAxis stroke="oklch(0.7 0.02 60)" fontSize={11} allowDecimals={false} />
+                <Tooltip contentStyle={{ background: "oklch(0.21 0.02 50)", border: "1px solid oklch(0.35 0.04 50)", borderRadius: 8 }} />
                 <Bar dataKey="count" fill="var(--color-chart-2)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
