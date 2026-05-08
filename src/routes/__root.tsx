@@ -77,11 +77,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "n8n Bot Console — execuções e controle do workflow" },
       { name: "description", content: "Painel para monitorar execuções do bot n8n, exportar relatórios e controlar o status do workflow." },
       { name: "author", content: "n8n Bot Console" },
-      { property: "og:title", content: "n8n Bot Console" },
-      { property: "og:description", content: "Painel para monitorar execuções do bot n8n." },
+      { property: "og:title", content: "n8n Bot Console — execuções e controle do workflow" },
+      { property: "og:description", content: "Painel para monitorar execuções do bot n8n, exportar relatórios e controlar o status do workflow." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "n8n Bot Console — execuções e controle do workflow" },
+      { name: "twitter:description", content: "Painel para monitorar execuções do bot n8n, exportar relatórios e controlar o status do workflow." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0007d3f1-c6a4-4afc-91c1-f773357b7540/id-preview-c0086a3e--17004e0d-7a29-42d9-816f-0393f491f10b.lovable.app-1778269209340.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/0007d3f1-c6a4-4afc-91c1-f773357b7540/id-preview-c0086a3e--17004e0d-7a29-42d9-816f-0393f491f10b.lovable.app-1778269209340.png" },
     ],
     links: [
       {
