@@ -2,6 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+async function assertPermission(supabase: any, userId: string, permission: "control_bot" | "edit_settings") {
+  const [{ data: admin }, { data: perm }] = await Promise.all([
+    supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle(),
+    supabase.from("user_permissions").select("permission").eq("user_id", userId).eq("permission", permission).maybeSingle(),
+  ]);
+  if (!admin && !perm) throw new Error("Sem permissão para esta ação.");
+}
+
 async function loadSettings(supabase: any, userId: string) {
   const { data, error } = await supabase
     .from("n8n_settings")
