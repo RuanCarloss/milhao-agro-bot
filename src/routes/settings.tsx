@@ -10,17 +10,32 @@ import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { getSettings, saveSettings } from "@/lib/n8n.functions";
 import { getNocoSettings, saveNocoSettings } from "@/lib/nocodb.functions";
+import { useAccess } from "@/lib/use-access";
+import { ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
 
 function SettingsPage() {
+  const access = useAccess();
   return (
     <AppShell>
-      <div className="px-4 md:px-10 py-8 max-w-2xl space-y-8">
-        <SettingsForm />
-        <NocoForm />
-      </div>
+      {access.loading ? (
+        <div className="px-6 py-12 flex justify-center"><Loader2 className="size-6 animate-spin text-primary" /></div>
+      ) : !access.canEditSettings ? (
+        <div className="px-6 py-12">
+          <Card className="glass p-8 max-w-xl mx-auto text-center">
+            <ShieldOff className="size-10 text-destructive mx-auto mb-3" />
+            <h2 className="text-xl font-bold mb-2">Acesso restrito</h2>
+            <p className="text-muted-foreground">Você não tem permissão para editar as configurações. Solicite acesso a um administrador.</p>
+          </Card>
+        </div>
+      ) : (
+        <div className="px-4 md:px-10 py-8 max-w-2xl space-y-8">
+          <SettingsForm />
+          <NocoForm />
+        </div>
+      )}
     </AppShell>
   );
 }
