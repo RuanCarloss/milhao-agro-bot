@@ -64,6 +64,11 @@ export const saveNocoSettings = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
+    const [{ data: admin }, { data: perm }] = await Promise.all([
+      supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle(),
+      supabase.from("user_permissions").select("permission").eq("user_id", userId).eq("permission", "edit_settings").maybeSingle(),
+    ]);
+    if (!admin && !perm) throw new Error("Sem permissão para editar configurações.");
     const params = new URLSearchParams({ limit: "1" });
     if (data.view_id) params.set("viewId", data.view_id);
     const res = await nocoFetch(
