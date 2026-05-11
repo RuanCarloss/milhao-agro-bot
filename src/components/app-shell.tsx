@@ -85,10 +85,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <span className="font-bold">Bot Console</span>
           </div>
-          <div className="flex gap-1">
-            <Link to="/" className={`px-3 py-1.5 rounded-md text-sm ${path === "/" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>Dashboard</Link>
-            <Link to="/messages" className={`px-3 py-1.5 rounded-md text-sm ${path === "/messages" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>Msgs</Link>
-            <Link to="/settings" className={`px-3 py-1.5 rounded-md text-sm ${path === "/settings" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>Config</Link>
+          <div className="flex gap-1 flex-wrap">
+            {navItems.map(({ to, label }) => (
+              <Link
+                key={to}
+                to={to}
+                className={`px-3 py-1.5 rounded-md text-sm ${path === to ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}
+              >
+                {label}
+              </Link>
+            ))}
           </div>
         </header>
         {children}
