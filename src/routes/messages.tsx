@@ -216,6 +216,46 @@ function Messages() {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn("gap-2", !range && "text-muted-foreground")}
+              >
+                <CalendarIcon className="size-4" />
+                {range?.from
+                  ? range.to
+                    ? `${format(range.from, "dd/MM/yy")} – ${format(range.to, "dd/MM/yy")}`
+                    : format(range.from, "dd/MM/yy")
+                  : "Período"}
+                {range?.from && (
+                  <X
+                    className="size-3.5 ml-1 opacity-60 hover:opacity-100"
+                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); setRange(undefined); }}
+                  />
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarPicker
+                mode="range"
+                selected={range}
+                onSelect={setRange}
+                numberOfMonths={2}
+                locale={ptBR}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+              <div className="flex justify-between items-center p-2 border-t border-border">
+                <span className="text-xs text-muted-foreground px-2">
+                  {filtered.length} resultado(s)
+                </span>
+                <Button variant="ghost" size="sm" onClick={() => setRange(undefined)}>Limpar</Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
           <Button
             variant="outline"
             size="sm"
