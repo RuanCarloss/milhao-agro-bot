@@ -71,17 +71,30 @@ function Messages() {
   });
 
   const [search, setSearch] = useState("");
+  const [range, setRange] = useState<DateRange | undefined>();
   const items = msgs.data ?? [];
+
+  const dateFiltered = useMemo(() => {
+    if (!range?.from) return items;
+    const from = startOfDay(range.from).getTime();
+    const to = endOfDay(range.to ?? range.from).getTime();
+    return items.filter((m) => {
+      const d = safeParse(m.date);
+      if (!d) return false;
+      const t = d.getTime();
+      return t >= from && t <= to;
+    });
+  }, [items, range]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter(
+    if (!q) return dateFiltered;
+    return dateFiltered.filter(
       (m) =>
         m.message.toLowerCase().includes(q) ||
         (m.recipient ?? "").toLowerCase().includes(q),
     );
-  }, [items, search]);
+  }, [dateFiltered, search]);
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -99,9 +112,12 @@ function Messages() {
   }, [items]);
 
   const dailySeries = useMemo(() => {
-    const days = eachDayOfInterval({ start: subDays(new Date(), 13), end: new Date() });
+    const end = range?.to ?? range?.from ?? new Date();
+    const start = range?.from ?? subDays(new Date(), 13);
+    const span = Math.min(Math.max(differenceInCalendarDays(end, start), 0), 90);
+    const days = eachDayOfInterval({ start: subDays(end, span), end });
     const map = new Map(days.map((d) => [format(d, "yyyy-MM-dd"), 0]));
-    items.forEach((m) => {
+    dateFiltered.forEach((m) => {
       const d = safeParse(m.date);
       if (!d) return;
       const k = format(d, "yyyy-MM-dd");
@@ -110,7 +126,7 @@ function Messages() {
     return Array.from(map.entries()).map(([d, count]) => ({
       day: format(parseISO(d), "dd/MM"), count,
     }));
-  }, [items]);
+  }, [dateFiltered, range]);
 
   const exportXlsx = () => {
     const rows = filtered.map((m) => {
