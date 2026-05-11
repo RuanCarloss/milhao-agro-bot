@@ -26,6 +26,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { getExecutions, getWorkflowStatus, setWorkflowActive, getSettings } from "@/lib/n8n.functions";
+import { useAccess } from "@/lib/use-access";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({ component: DashboardRoute });
