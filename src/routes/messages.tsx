@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
   MessageSquare, Calendar, Download, FileSpreadsheet, FileText,
-  Loader2, RefreshCw, AlertCircle, Search,
+  Loader2, RefreshCw, AlertCircle, Search, CalendarIcon, X,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -12,13 +12,20 @@ import {
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { format, parseISO, startOfDay, startOfMonth, eachDayOfInterval, subDays, isValid } from "date-fns";
+import {
+  format, parseISO, startOfDay, endOfDay, startOfMonth, eachDayOfInterval,
+  subDays, isValid, differenceInCalendarDays,
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
