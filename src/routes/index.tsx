@@ -41,6 +41,7 @@ function DashboardRoute() {
 
 function Dashboard() {
   const qc = useQueryClient();
+  const access = useAccess();
   const fetchSettings = useServerFn(getSettings);
   const fetchExecutions = useServerFn(getExecutions);
   const fetchStatus = useServerFn(getWorkflowStatus);
@@ -215,7 +216,7 @@ function Dashboard() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {status.data?.active ? (
+          {access.canControlBot && (status.data?.active ? (
             <Button
               size="sm"
               variant="destructive"
@@ -236,7 +237,7 @@ function Dashboard() {
               {toggleBot.isPending ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
               Ativar bot
             </Button>
-          )}
+          ))}
         </div>
       </header>
 
