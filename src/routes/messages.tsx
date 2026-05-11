@@ -289,7 +289,7 @@ function Messages() {
       <section>
         <Card className="glass p-5 shadow-card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Mensagens por dia (14d)</h3>
+            <h3 className="font-semibold">Mensagens por dia {range?.from ? "(período selecionado)" : "(14d)"}</h3>
           </div>
           <div className="h-64">
             <ResponsiveContainer>
