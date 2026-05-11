@@ -1,11 +1,13 @@
 import { useEffect, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Bot, LayoutDashboard, MessageSquare, Settings, LogOut, Loader2 } from "lucide-react";
+import { Bot, LayoutDashboard, MessageSquare, Settings, LogOut, Loader2, Shield } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
+import { useAccess } from "@/lib/use-access";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { user, loading, signOut } = useAuth();
+  const access = useAccess();
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
 
@@ -22,10 +24,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const navItems = [
-    { to: "/", label: "Dashboard", icon: LayoutDashboard },
-    { to: "/messages", label: "Mensagens", icon: MessageSquare },
-    { to: "/settings", label: "Conexões", icon: Settings },
-  ] as const;
+    { to: "/", label: "Dashboard", icon: LayoutDashboard, show: true },
+    { to: "/messages", label: "Mensagens", icon: MessageSquare, show: true },
+    { to: "/settings", label: "Conexões", icon: Settings, show: access.canEditSettings },
+    { to: "/admin", label: "Admin", icon: Shield, show: access.isAdmin },
+  ].filter((i) => i.show);
 
   return (
     <div className="min-h-screen flex">
@@ -82,10 +85,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
             <span className="font-bold">Bot Console</span>
           </div>
-          <div className="flex gap-1">
-            <Link to="/" className={`px-3 py-1.5 rounded-md text-sm ${path === "/" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>Dashboard</Link>
-            <Link to="/messages" className={`px-3 py-1.5 rounded-md text-sm ${path === "/messages" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>Msgs</Link>
-            <Link to="/settings" className={`px-3 py-1.5 rounded-md text-sm ${path === "/settings" ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}>Config</Link>
+          <div className="flex gap-1 flex-wrap">
+            {navItems.map(({ to, label }) => (
+              <Link
+                key={to}
+                to={to}
+                className={`px-3 py-1.5 rounded-md text-sm ${path === to ? "bg-primary/15 text-primary" : "text-muted-foreground"}`}
+              >
+                {label}
+              </Link>
+            ))}
           </div>
         </header>
         {children}

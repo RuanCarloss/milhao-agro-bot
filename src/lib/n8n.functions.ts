@@ -2,6 +2,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
+async function assertPermission(supabase: any, userId: string, permission: "control_bot" | "edit_settings") {
+  const [{ data: admin }, { data: perm }] = await Promise.all([
+    supabase.from("user_roles").select("role").eq("user_id", userId).eq("role", "admin").maybeSingle(),
+    supabase.from("user_permissions").select("permission").eq("user_id", userId).eq("permission", permission).maybeSingle(),
+  ]);
+  if (!admin && !perm) throw new Error("Sem permissão para esta ação.");
+}
+
 async function loadSettings(supabase: any, userId: string) {
   const { data, error } = await supabase
     .from("n8n_settings")
@@ -50,6 +58,7 @@ export const saveSettings = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
+    await assertPermission(supabase, userId, "edit_settings");
     // Test connection first
     const res = await n8nFetch(data.base_url, data.api_key, `/api/v1/workflows/${data.workflow_id}`);
     if (!res.ok) {
@@ -82,6 +91,7 @@ export const setWorkflowActive = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
+    await assertPermission(supabase, userId, "control_bot");
     const s = await loadSettings(supabase, userId);
     const action = data.active ? "activate" : "deactivate";
     const res = await n8nFetch(s.base_url, s.api_key, `/api/v1/workflows/${s.workflow_id}/${action}`, {

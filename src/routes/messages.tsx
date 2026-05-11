@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import {
   MessageSquare, Calendar, Download, FileSpreadsheet, FileText,
-  Loader2, RefreshCw, AlertCircle, Search,
+  Loader2, RefreshCw, AlertCircle, Search, CalendarIcon, X,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -12,13 +12,20 @@ import {
 import * as XLSX from "xlsx";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import { format, parseISO, startOfDay, startOfMonth, eachDayOfInterval, subDays, isValid } from "date-fns";
+import {
+  format, parseISO, startOfDay, endOfDay, startOfMonth, eachDayOfInterval,
+  subDays, isValid, differenceInCalendarDays,
+} from "date-fns";
 import { ptBR } from "date-fns/locale";
+import type { DateRange } from "react-day-picker";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -64,17 +71,30 @@ function Messages() {
   });
 
   const [search, setSearch] = useState("");
+  const [range, setRange] = useState<DateRange | undefined>();
   const items = msgs.data ?? [];
+
+  const dateFiltered = useMemo(() => {
+    if (!range?.from) return items;
+    const from = startOfDay(range.from).getTime();
+    const to = endOfDay(range.to ?? range.from).getTime();
+    return items.filter((m) => {
+      const d = safeParse(m.date);
+      if (!d) return false;
+      const t = d.getTime();
+      return t >= from && t <= to;
+    });
+  }, [items, range]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return items;
-    return items.filter(
+    if (!q) return dateFiltered;
+    return dateFiltered.filter(
       (m) =>
         m.message.toLowerCase().includes(q) ||
         (m.recipient ?? "").toLowerCase().includes(q),
     );
-  }, [items, search]);
+  }, [dateFiltered, search]);
 
   const stats = useMemo(() => {
     const now = new Date();
@@ -92,9 +112,12 @@ function Messages() {
   }, [items]);
 
   const dailySeries = useMemo(() => {
-    const days = eachDayOfInterval({ start: subDays(new Date(), 13), end: new Date() });
+    const end = range?.to ?? range?.from ?? new Date();
+    const start = range?.from ?? subDays(new Date(), 13);
+    const span = Math.min(Math.max(differenceInCalendarDays(end, start), 0), 90);
+    const days = eachDayOfInterval({ start: subDays(end, span), end });
     const map = new Map(days.map((d) => [format(d, "yyyy-MM-dd"), 0]));
-    items.forEach((m) => {
+    dateFiltered.forEach((m) => {
       const d = safeParse(m.date);
       if (!d) return;
       const k = format(d, "yyyy-MM-dd");
@@ -103,7 +126,7 @@ function Messages() {
     return Array.from(map.entries()).map(([d, count]) => ({
       day: format(parseISO(d), "dd/MM"), count,
     }));
-  }, [items]);
+  }, [dateFiltered, range]);
 
   const exportXlsx = () => {
     const rows = filtered.map((m) => {
@@ -193,6 +216,46 @@ function Messages() {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn("gap-2", !range && "text-muted-foreground")}
+              >
+                <CalendarIcon className="size-4" />
+                {range?.from
+                  ? range.to
+                    ? `${format(range.from, "dd/MM/yy")} – ${format(range.to, "dd/MM/yy")}`
+                    : format(range.from, "dd/MM/yy")
+                  : "Período"}
+                {range?.from && (
+                  <X
+                    className="size-3.5 ml-1 opacity-60 hover:opacity-100"
+                    onClick={(e) => { e.stopPropagation(); e.preventDefault(); setRange(undefined); }}
+                  />
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarPicker
+                mode="range"
+                selected={range}
+                onSelect={setRange}
+                numberOfMonths={2}
+                locale={ptBR}
+                initialFocus
+                className={cn("p-3 pointer-events-auto")}
+              />
+              <div className="flex justify-between items-center p-2 border-t border-border">
+                <span className="text-xs text-muted-foreground px-2">
+                  {filtered.length} resultado(s)
+                </span>
+                <Button variant="ghost" size="sm" onClick={() => setRange(undefined)}>Limpar</Button>
+              </div>
+            </PopoverContent>
+          </Popover>
+
           <Button
             variant="outline"
             size="sm"
@@ -226,7 +289,7 @@ function Messages() {
       <section>
         <Card className="glass p-5 shadow-card">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="font-semibold">Mensagens por dia (14d)</h3>
+            <h3 className="font-semibold">Mensagens por dia {range?.from ? "(período selecionado)" : "(14d)"}</h3>
           </div>
           <div className="h-64">
             <ResponsiveContainer>

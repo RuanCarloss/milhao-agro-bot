@@ -26,6 +26,7 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { getExecutions, getWorkflowStatus, setWorkflowActive, getSettings } from "@/lib/n8n.functions";
+import { useAccess } from "@/lib/use-access";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/")({ component: DashboardRoute });
@@ -40,6 +41,7 @@ function DashboardRoute() {
 
 function Dashboard() {
   const qc = useQueryClient();
+  const access = useAccess();
   const fetchSettings = useServerFn(getSettings);
   const fetchExecutions = useServerFn(getExecutions);
   const fetchStatus = useServerFn(getWorkflowStatus);
@@ -214,7 +216,7 @@ function Dashboard() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {status.data?.active ? (
+          {access.canControlBot && (status.data?.active ? (
             <Button
               size="sm"
               variant="destructive"
@@ -235,7 +237,7 @@ function Dashboard() {
               {toggleBot.isPending ? <Loader2 className="size-4 animate-spin" /> : <Play className="size-4" />}
               Ativar bot
             </Button>
-          )}
+          ))}
         </div>
       </header>
 
