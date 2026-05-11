@@ -58,6 +58,7 @@ export const saveSettings = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
+    await assertPermission(supabase, userId, "edit_settings");
     // Test connection first
     const res = await n8nFetch(data.base_url, data.api_key, `/api/v1/workflows/${data.workflow_id}`);
     if (!res.ok) {
@@ -90,6 +91,7 @@ export const setWorkflowActive = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ active: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
+    await assertPermission(supabase, userId, "control_bot");
     const s = await loadSettings(supabase, userId);
     const action = data.active ? "activate" : "deactivate";
     const res = await n8nFetch(s.base_url, s.api_key, `/api/v1/workflows/${s.workflow_id}/${action}`, {
