@@ -12,14 +12,14 @@ type NocoSettings = {
   recipient_field: string | null;
 };
 
-async function loadSettings(supabase: any, userId: string): Promise<NocoSettings> {
+async function loadSettings(supabase: any, _userId?: string): Promise<NocoSettings> {
   const { data, error } = await supabase
     .from("nocodb_settings")
     .select("base_url, api_token, table_id, view_id, message_field, date_field, recipient_field")
-    .eq("user_id", userId)
+    .limit(1)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Configurações do NocoDB não encontradas. Configure primeiro.");
+  if (!data) throw new Error("Configurações do NocoDB não encontradas. Peça ao administrador para configurar.");
   return data as NocoSettings;
 }
 
@@ -38,11 +38,11 @@ function nocoFetch(baseUrl: string, token: string, path: string, init?: RequestI
 export const getNocoSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context as any;
+    const { supabase } = context as any;
     const { data } = await supabase
       .from("nocodb_settings")
       .select("base_url, table_id, view_id, message_field, date_field, recipient_field")
-      .eq("user_id", userId)
+      .limit(1)
       .maybeSingle();
     return data ?? null;
   });
@@ -79,17 +79,21 @@ export const saveNocoSettings = createServerFn({ method: "POST" })
     if (!res.ok) {
       throw new Error(`Falha ao conectar no NocoDB (${res.status}). Verifique URL, token e Table ID.`);
     }
-    const { error } = await supabase.from("nocodb_settings").upsert({
-      user_id: userId,
-      base_url: data.base_url,
-      api_token: data.api_token,
-      table_id: data.table_id,
-      view_id: data.view_id || null,
-      message_field: data.message_field,
-      date_field: data.date_field,
-      recipient_field: data.recipient_field || null,
-      updated_at: new Date().toISOString(),
-    });
+    const { error } = await supabase.from("nocodb_settings").upsert(
+      {
+        singleton: true,
+        user_id: userId,
+        base_url: data.base_url,
+        api_token: data.api_token,
+        table_id: data.table_id,
+        view_id: data.view_id || null,
+        message_field: data.message_field,
+        date_field: data.date_field,
+        recipient_field: data.recipient_field || null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "singleton" },
+    );
     if (error) throw new Error(error.message);
     return { ok: true };
   });

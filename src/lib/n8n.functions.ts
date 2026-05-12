@@ -10,14 +10,14 @@ async function assertPermission(supabase: any, userId: string, permission: "cont
   if (!admin && !perm) throw new Error("Sem permissão para esta ação.");
 }
 
-async function loadSettings(supabase: any, userId: string) {
+async function loadSettings(supabase: any, _userId?: string) {
   const { data, error } = await supabase
     .from("n8n_settings")
     .select("base_url, api_key, workflow_id")
-    .eq("user_id", userId)
+    .limit(1)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Configurações do n8n não encontradas. Configure primeiro.");
+  if (!data) throw new Error("Configurações do n8n não encontradas. Peça ao administrador para configurar.");
   return data as { base_url: string; api_key: string; workflow_id: string };
 }
 
@@ -36,11 +36,11 @@ function n8nFetch(baseUrl: string, apiKey: string, path: string, init?: RequestI
 export const getSettings = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { supabase, userId } = context as any;
+    const { supabase } = context as any;
     const { data } = await supabase
       .from("n8n_settings")
       .select("base_url, workflow_id")
-      .eq("user_id", userId)
+      .limit(1)
       .maybeSingle();
     return data ?? null;
   });
@@ -59,18 +59,21 @@ export const saveSettings = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context as any;
     await assertPermission(supabase, userId, "edit_settings");
-    // Test connection first
     const res = await n8nFetch(data.base_url, data.api_key, `/api/v1/workflows/${data.workflow_id}`);
     if (!res.ok) {
       throw new Error(`Falha ao conectar no n8n (${res.status}). Verifique URL, API Key e Workflow ID.`);
     }
-    const { error } = await supabase.from("n8n_settings").upsert({
-      user_id: userId,
-      base_url: data.base_url,
-      api_key: data.api_key,
-      workflow_id: data.workflow_id,
-      updated_at: new Date().toISOString(),
-    });
+    const { error } = await supabase.from("n8n_settings").upsert(
+      {
+        singleton: true,
+        user_id: userId,
+        base_url: data.base_url,
+        api_key: data.api_key,
+        workflow_id: data.workflow_id,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "singleton" },
+    );
     if (error) throw new Error(error.message);
     return { ok: true };
   });
