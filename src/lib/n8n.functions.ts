@@ -10,14 +10,14 @@ async function assertPermission(supabase: any, userId: string, permission: "cont
   if (!admin && !perm) throw new Error("Sem permissão para esta ação.");
 }
 
-async function loadSettings(supabase: any, userId: string) {
+async function loadSettings(supabase: any, _userId?: string) {
   const { data, error } = await supabase
     .from("n8n_settings")
     .select("base_url, api_key, workflow_id")
-    .eq("user_id", userId)
+    .limit(1)
     .maybeSingle();
   if (error) throw new Error(error.message);
-  if (!data) throw new Error("Configurações do n8n não encontradas. Configure primeiro.");
+  if (!data) throw new Error("Configurações do n8n não encontradas. Peça ao administrador para configurar.");
   return data as { base_url: string; api_key: string; workflow_id: string };
 }
 
