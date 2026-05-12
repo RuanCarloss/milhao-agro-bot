@@ -131,6 +131,33 @@ export type Database = {
         }
         Relationships: []
       }
+      workflow_versions: {
+        Row: {
+          created_at: string
+          description: string | null
+          n8n_updated_at: string | null
+          title: string | null
+          updated_at: string
+          version_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          n8n_updated_at?: string | null
+          title?: string | null
+          updated_at?: string
+          version_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          n8n_updated_at?: string | null
+          title?: string | null
+          updated_at?: string
+          version_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
