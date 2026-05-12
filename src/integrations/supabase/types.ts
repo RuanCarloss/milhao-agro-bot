@@ -19,24 +19,27 @@ export type Database = {
           api_key: string
           base_url: string
           created_at: string
+          singleton: boolean
           updated_at: string
-          user_id: string
+          user_id: string | null
           workflow_id: string
         }
         Insert: {
           api_key: string
           base_url: string
           created_at?: string
+          singleton?: boolean
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           workflow_id: string
         }
         Update: {
           api_key?: string
           base_url?: string
           created_at?: string
+          singleton?: boolean
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           workflow_id?: string
         }
         Relationships: []
@@ -49,9 +52,10 @@ export type Database = {
           date_field: string
           message_field: string
           recipient_field: string | null
+          singleton: boolean
           table_id: string
           updated_at: string
-          user_id: string
+          user_id: string | null
           view_id: string | null
         }
         Insert: {
@@ -61,9 +65,10 @@ export type Database = {
           date_field?: string
           message_field?: string
           recipient_field?: string | null
+          singleton?: boolean
           table_id: string
           updated_at?: string
-          user_id: string
+          user_id?: string | null
           view_id?: string | null
         }
         Update: {
@@ -73,9 +78,10 @@ export type Database = {
           date_field?: string
           message_field?: string
           recipient_field?: string | null
+          singleton?: boolean
           table_id?: string
           updated_at?: string
-          user_id?: string
+          user_id?: string | null
           view_id?: string | null
         }
         Relationships: []
