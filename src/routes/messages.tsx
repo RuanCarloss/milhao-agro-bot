@@ -432,18 +432,19 @@ function RecipientCell({ value }: { value: string | null | undefined }) {
           </span>
           <Badge variant="secondary" className="text-[10px]">{list.length}</Badge>
         </div>
-        <ScrollArea className="h-64">
-          <ul className="py-1 pr-2">
+        <ScrollArea className="h-64 w-full">
+          <ul className="py-1 min-w-max">
             {list.map((r, i) => (
               <li
                 key={`${r}-${i}`}
-                className="px-3 py-1.5 text-sm hover:bg-accent/40 flex items-center gap-2"
+                className="px-3 py-1.5 text-sm hover:bg-accent/40 flex items-center gap-2 whitespace-nowrap"
               >
                 <span className="size-1.5 rounded-full bg-primary/70 shrink-0" />
-                <span className="truncate" title={r}>{r}</span>
+                <span title={r}>{r}</span>
               </li>
             ))}
           </ul>
+          <ScrollBar orientation="horizontal" />
         </ScrollArea>
       </PopoverContent>
     </Popover>
