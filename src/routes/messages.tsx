@@ -432,8 +432,8 @@ function RecipientCell({ value }: { value: string | null | undefined }) {
           </span>
           <Badge variant="secondary" className="text-[10px]">{list.length}</Badge>
         </div>
-        <ScrollArea className="max-h-64">
-          <ul className="py-1">
+        <ScrollArea className="h-64">
+          <ul className="py-1 pr-2">
             {list.map((r, i) => (
               <li
                 key={`${r}-${i}`}
