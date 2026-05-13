@@ -83,6 +83,9 @@ function LoginPage() {
             </TabsContent>
           </Tabs>
         </Card>
+        <p className="mt-6 text-center text-xs text-muted-foreground">
+          Desenvolvido por Ruan C. Souza<sup>®</sup>
+        </p>
       </div>
     </main>
   );
