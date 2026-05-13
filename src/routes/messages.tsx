@@ -351,8 +351,8 @@ function Messages() {
                         <TableCell className="font-mono text-xs">
                           {d ? format(d, "HH:mm:ss") : "—"}
                         </TableCell>
-                        <TableCell className="text-sm">
-                          {m.recipient || <span className="opacity-50 italic">—</span>}
+                        <TableCell className="text-sm align-top">
+                          <RecipientCell value={m.recipient} />
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-md truncate" title={m.message}>
                           {m.message || <span className="opacity-50 italic">—</span>}
