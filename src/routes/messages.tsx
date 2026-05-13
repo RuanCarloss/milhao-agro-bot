@@ -29,6 +29,8 @@ import { cn } from "@/lib/utils";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Users, MoreHorizontal } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -350,8 +352,8 @@ function Messages() {
                         <TableCell className="font-mono text-xs">
                           {d ? format(d, "HH:mm:ss") : "—"}
                         </TableCell>
-                        <TableCell className="text-sm">
-                          {m.recipient || <span className="opacity-50 italic">—</span>}
+                        <TableCell className="text-sm align-top">
+                          <RecipientCell value={m.recipient} />
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground max-w-md truncate" title={m.message}>
                           {m.message || <span className="opacity-50 italic">—</span>}
@@ -390,5 +392,60 @@ function StatCard({
         </div>
       </div>
     </Card>
+  );
+}
+
+function RecipientCell({ value }: { value: string | null | undefined }) {
+  if (!value) return <span className="opacity-50 italic">—</span>;
+  const list = value
+    .split(/[,;\n|]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  if (list.length <= 1) {
+    return <span className="text-sm">{list[0] ?? value}</span>;
+  }
+
+  const preview = list[0];
+  const remaining = list.length - 1;
+
+  return (
+    <Popover>
+      <div className="flex items-center gap-1.5 max-w-[260px]">
+        <Users className="size-3.5 text-muted-foreground shrink-0" />
+        <span className="truncate text-sm" title={preview}>{preview}</span>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-6 px-1.5 gap-1 text-xs text-primary hover:text-primary shrink-0"
+          >
+            +{remaining}
+            <MoreHorizontal className="size-3" />
+          </Button>
+        </PopoverTrigger>
+      </div>
+      <PopoverContent align="start" className="w-72 p-0">
+        <div className="px-3 py-2 border-b border-border flex items-center justify-between">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Destinatários
+          </span>
+          <Badge variant="secondary" className="text-[10px]">{list.length}</Badge>
+        </div>
+        <ScrollArea className="max-h-64">
+          <ul className="py-1">
+            {list.map((r, i) => (
+              <li
+                key={`${r}-${i}`}
+                className="px-3 py-1.5 text-sm hover:bg-accent/40 flex items-center gap-2"
+              >
+                <span className="size-1.5 rounded-full bg-primary/70 shrink-0" />
+                <span className="truncate" title={r}>{r}</span>
+              </li>
+            ))}
+          </ul>
+        </ScrollArea>
+      </PopoverContent>
+    </Popover>
   );
 }
