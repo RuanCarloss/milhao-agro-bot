@@ -228,7 +228,7 @@ function Messages() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold tracking-tight">Mensagens enviadas</h1>
-            <Badge variant="outline">NocoDB</Badge>
+            <Badge variant="outline">Supabase</Badge>
           </div>
           <p className="text-muted-foreground">Histórico de mensagens registradas pelo bot.</p>
         </div>
