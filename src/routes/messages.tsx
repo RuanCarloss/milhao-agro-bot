@@ -68,22 +68,42 @@ function safeParse(d: string | null): Date | null {
 }
 
 function Messages() {
-  const fetchSettings = useServerFn(getNocoSettings);
-  const fetchMessages = useServerFn(getNocoMessages);
+  const queryClient = useQueryClient();
 
-  const settings = useQuery({ queryKey: ["noco-settings"], queryFn: () => fetchSettings() });
-  const hasSettings = !!settings.data;
-
-  const msgs = useQuery({
-    queryKey: ["noco-messages"],
-    queryFn: () => fetchMessages({ data: { limit: 500 } }),
-    enabled: hasSettings,
+  const msgs = useQuery<MessageRow[]>({
+    queryKey: ["supabase-messages"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id, message, recipient, sent_at")
+        .order("sent_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id,
+        message: r.message ?? "",
+        recipient: r.recipient,
+        date: r.sent_at,
+      }));
+    },
     refetchInterval: 30000,
   });
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("messages-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["supabase-messages"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const [search, setSearch] = useState("");
   const [range, setRange] = useState<DateRange | undefined>();
-  const items = msgs.data ?? [];
+  const items: MessageRow[] = msgs.data ?? [];
 
   const dateFiltered = useMemo(() => {
     if (!range?.from) return items;
