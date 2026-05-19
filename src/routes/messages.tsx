@@ -1,10 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   MessageSquare, Calendar, Download, FileSpreadsheet, FileText,
-  Loader2, RefreshCw, AlertCircle, Search, CalendarIcon, X,
+  Loader2, RefreshCw, Search, CalendarIcon, X,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
@@ -34,7 +33,14 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { getNocoMessages, getNocoSettings } from "@/lib/nocodb.functions";
+import { supabase } from "@/integrations/supabase/client";
+
+type MessageRow = {
+  id: string;
+  message: string;
+  recipient: string | null;
+  date: string | null;
+};
 
 export const Route = createFileRoute("/messages")({ component: MessagesRoute });
 
@@ -59,22 +65,42 @@ function safeParse(d: string | null): Date | null {
 }
 
 function Messages() {
-  const fetchSettings = useServerFn(getNocoSettings);
-  const fetchMessages = useServerFn(getNocoMessages);
+  const queryClient = useQueryClient();
 
-  const settings = useQuery({ queryKey: ["noco-settings"], queryFn: () => fetchSettings() });
-  const hasSettings = !!settings.data;
-
-  const msgs = useQuery({
-    queryKey: ["noco-messages"],
-    queryFn: () => fetchMessages({ data: { limit: 500 } }),
-    enabled: hasSettings,
+  const msgs = useQuery<MessageRow[]>({
+    queryKey: ["supabase-messages"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("messages")
+        .select("id, message, recipient, sent_at")
+        .order("sent_at", { ascending: false })
+        .limit(500);
+      if (error) throw error;
+      return (data ?? []).map((r) => ({
+        id: r.id,
+        message: r.message ?? "",
+        recipient: r.recipient,
+        date: r.sent_at,
+      }));
+    },
     refetchInterval: 30000,
   });
 
+  useEffect(() => {
+    const channel = supabase
+      .channel("messages-changes")
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
+        queryClient.invalidateQueries({ queryKey: ["supabase-messages"] });
+      })
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [queryClient]);
+
   const [search, setSearch] = useState("");
   const [range, setRange] = useState<DateRange | undefined>();
-  const items = msgs.data ?? [];
+  const items: MessageRow[] = msgs.data ?? [];
 
   const dateFiltered = useMemo(() => {
     if (!range?.from) return items;
@@ -191,20 +217,7 @@ function Messages() {
     doc.save(`mensagens-${format(new Date(), "yyyyMMdd-HHmm")}.pdf`);
   };
 
-  if (!settings.isLoading && !hasSettings) {
-    return (
-      <div className="px-6 md:px-10 py-12">
-        <Card className="glass p-8 max-w-xl mx-auto text-center">
-          <AlertCircle className="size-10 text-warning mx-auto mb-3" />
-          <h2 className="text-xl font-bold mb-2">Configure a conexão com o NocoDB</h2>
-          <p className="text-muted-foreground mb-5">Informe a URL, token de API e o ID da tabela das mensagens.</p>
-          <Button asChild className="bg-gradient-primary text-primary-foreground hover:opacity-90">
-            <Link to="/settings">Ir para configuração</Link>
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+  // Supabase é a fonte de dados — nenhuma tela de configuração necessária.
 
   return (
     <div className="px-4 md:px-10 py-6 space-y-6">
@@ -212,7 +225,7 @@ function Messages() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-bold tracking-tight">Mensagens enviadas</h1>
-            <Badge variant="outline">NocoDB</Badge>
+            <Badge variant="outline">Supabase</Badge>
           </div>
           <p className="text-muted-foreground">Histórico de mensagens registradas pelo bot.</p>
         </div>

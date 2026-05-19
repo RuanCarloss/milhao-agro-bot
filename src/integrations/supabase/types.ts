@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      messages: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          recipient: string | null
+          sent_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message?: string
+          recipient?: string | null
+          sent_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          recipient?: string | null
+          sent_at?: string
+        }
+        Relationships: []
+      }
       n8n_settings: {
         Row: {
           api_key: string
