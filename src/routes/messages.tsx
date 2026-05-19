@@ -220,20 +220,7 @@ function Messages() {
     doc.save(`mensagens-${format(new Date(), "yyyyMMdd-HHmm")}.pdf`);
   };
 
-  if (!settings.isLoading && !hasSettings) {
-    return (
-      <div className="px-6 md:px-10 py-12">
-        <Card className="glass p-8 max-w-xl mx-auto text-center">
-          <AlertCircle className="size-10 text-warning mx-auto mb-3" />
-          <h2 className="text-xl font-bold mb-2">Configure a conexão com o NocoDB</h2>
-          <p className="text-muted-foreground mb-5">Informe a URL, token de API e o ID da tabela das mensagens.</p>
-          <Button asChild className="bg-gradient-primary text-primary-foreground hover:opacity-90">
-            <Link to="/settings">Ir para configuração</Link>
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+  // Supabase é a fonte de dados — nenhuma tela de configuração necessária.
 
   return (
     <div className="px-4 md:px-10 py-6 space-y-6">
