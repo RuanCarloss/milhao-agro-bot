@@ -34,7 +34,16 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { getNocoMessages, getNocoSettings } from "@/lib/nocodb.functions";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
+type MessageRow = {
+  id: string;
+  message: string;
+  recipient: string | null;
+  date: string | null;
+};
 
 export const Route = createFileRoute("/messages")({ component: MessagesRoute });
 
