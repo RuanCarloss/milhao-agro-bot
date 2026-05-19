@@ -36,7 +36,7 @@ function SettingsPage() {
       ) : (
         <div className="px-4 md:px-10 py-8 max-w-2xl space-y-8">
           <SettingsForm />
-          <NocoForm />
+          <SupabaseMessagesInfo />
         </div>
       )}
     </AppShell>
