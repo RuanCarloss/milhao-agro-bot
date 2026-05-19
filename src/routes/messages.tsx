@@ -73,31 +73,40 @@ function Messages() {
   const msgs = useQuery<MessageRow[]>({
     queryKey: ["supabase-messages"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("messages")
-        .select("id, message, recipient, sent_at")
-        .order("sent_at", { ascending: false })
+      const { data, error } = await externalMessagesSupabase
+        .from(EXTERNAL_MESSAGES_TABLE)
+        .select("id, message, grupo, created_at")
+        .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
-      return (data ?? []).map((r) => ({
-        id: r.id,
+      return ((data ?? []) as Array<{
+        id: string | number;
+        message: string | null;
+        grupo: string | null;
+        created_at: string | null;
+      }>).map((r) => ({
+        id: String(r.id),
         message: r.message ?? "",
-        recipient: r.recipient,
-        date: r.sent_at,
+        recipient: r.grupo,
+        date: r.created_at,
       }));
     },
     refetchInterval: 30000,
   });
 
   useEffect(() => {
-    const channel = supabase
-      .channel("messages-changes")
-      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
-        queryClient.invalidateQueries({ queryKey: ["supabase-messages"] });
-      })
+    const channel = externalMessagesSupabase
+      .channel("external-messages-changes")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: EXTERNAL_MESSAGES_TABLE },
+        () => {
+          queryClient.invalidateQueries({ queryKey: ["supabase-messages"] });
+        },
+      )
       .subscribe();
     return () => {
-      supabase.removeChannel(channel);
+      externalMessagesSupabase.removeChannel(channel);
     };
   }, [queryClient]);
 
