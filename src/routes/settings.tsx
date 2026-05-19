@@ -9,7 +9,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { getSettings, saveSettings } from "@/lib/n8n.functions";
-import { getNocoSettings, saveNocoSettings } from "@/lib/nocodb.functions";
+import {
+  externalMessagesSupabase,
+  EXTERNAL_MESSAGES_TABLE,
+} from "@/integrations/supabase/external-messages-client";
 import { useAccess } from "@/lib/use-access";
 import { ShieldOff } from "lucide-react";
 import { toast } from "sonner";
