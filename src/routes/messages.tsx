@@ -34,8 +34,6 @@ import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 
 type MessageRow = {
   id: string;
