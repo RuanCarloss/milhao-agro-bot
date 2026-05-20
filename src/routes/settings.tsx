@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save, Link as LinkIcon, Database } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { getSettings, saveSettings } from "@/lib/n8n.functions";
-import { pingExternalMessages } from "@/lib/external-messages.functions";
-
-const EXTERNAL_MESSAGES_TABLE = "Message-Agro-Bot";
+import {
+  getMessagesConnection,
+  saveMessagesConnection,
+  pingExternalMessages,
+} from "@/lib/external-messages.functions";
 import { useAccess } from "@/lib/use-access";
 import { ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
+
 
 function SettingsPage() {
   const access = useAccess();
@@ -119,8 +122,20 @@ function SettingsForm() {
 }
 
 function SupabaseMessagesInfo() {
-  const projectUrl = "https://yenrqvkldkpktmjsuofn.supabase.co";
-  const projectRef = "yenrqvkldkpktmjsuofn";
+  const queryClient = useQueryClient();
+  const fetchConn = useServerFn(getMessagesConnection);
+  const saveConn = useServerFn(saveMessagesConnection);
+  const pingFn = useServerFn(pingExternalMessages);
+
+  const { data: conn, isLoading } = useQuery({
+    queryKey: ["messages-connection"],
+    queryFn: () => fetchConn(),
+  });
+
+  const [baseUrl, setBaseUrl] = useState("");
+  const [tableName, setTableName] = useState("");
+  const [serviceKey, setServiceKey] = useState("");
+  const [busy, setBusy] = useState(false);
   const [testing, setTesting] = useState(false);
   const [status, setStatus] = useState<
     | { ok: true; count: number }
@@ -128,7 +143,38 @@ function SupabaseMessagesInfo() {
     | null
   >(null);
 
-  const pingFn = useServerFn(pingExternalMessages);
+  useEffect(() => {
+    if (conn) {
+      setBaseUrl(conn.base_url);
+      setTableName(conn.table_name);
+    } else if (conn === null) {
+      setBaseUrl("https://yenrqvkldkpktmjsuofn.supabase.co");
+      setTableName("Message-Agro-Bot");
+    }
+  }, [conn]);
+
+  const onSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await saveConn({
+        data: {
+          base_url: baseUrl.trim(),
+          table_name: tableName.trim(),
+          service_role_key: serviceKey.trim() || undefined,
+        },
+      });
+      toast.success("Conexão salva!");
+      setServiceKey("");
+      queryClient.invalidateQueries({ queryKey: ["messages-connection"] });
+      queryClient.invalidateQueries({ queryKey: ["supabase-messages"] });
+    } catch (err: any) {
+      toast.error(err?.message ?? "Erro ao salvar");
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const testConnection = async () => {
     setTesting(true);
     setStatus(null);
@@ -158,56 +204,92 @@ function SupabaseMessagesInfo() {
         </div>
       </header>
 
-      <Card className="glass p-6 shadow-card space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Project Ref</Label>
-            <Input value={projectRef} readOnly className="font-mono" />
+      <Card className="glass p-6 shadow-card">
+        {isLoading ? (
+          <div className="py-6 flex justify-center">
+            <Loader2 className="size-5 animate-spin text-primary" />
           </div>
-          <div className="space-y-2">
-            <Label>URL do projeto</Label>
-            <Input value={projectUrl} readOnly className="font-mono" />
-          </div>
-        </div>
+        ) : (
+          <form onSubmit={onSubmit} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="sb-url">URL do projeto Supabase</Label>
+              <Input
+                id="sb-url"
+                value={baseUrl}
+                onChange={(e) => setBaseUrl(e.target.value)}
+                placeholder="https://xxxx.supabase.co"
+                className="font-mono"
+                required
+              />
+            </div>
 
-        <div className="space-y-2">
-          <Label>Tabela</Label>
-          <Input value={EXTERNAL_MESSAGES_TABLE} readOnly className="font-mono" />
-          <p className="text-xs text-muted-foreground">
-            Colunas esperadas: <span className="font-mono">message</span>,{" "}
-            <span className="font-mono">grupo</span>,{" "}
-            <span className="font-mono">created_at</span>.
-          </p>
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="sb-table">Nome da tabela</Label>
+              <Input
+                id="sb-table"
+                value={tableName}
+                onChange={(e) => setTableName(e.target.value)}
+                placeholder="Message-Agro-Bot"
+                className="font-mono"
+                required
+              />
+              <p className="text-xs text-muted-foreground">
+                Colunas esperadas: <span className="font-mono">message</span>,{" "}
+                <span className="font-mono">grupo</span>,{" "}
+                <span className="font-mono">created_at</span>.
+              </p>
+            </div>
 
-        <div className="flex items-center gap-3">
-          <Button
-            type="button"
-            onClick={testConnection}
-            disabled={testing}
-            className="bg-gradient-primary text-primary-foreground hover:opacity-90 gap-2"
-          >
-            {testing ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
-            Testar conexão
-          </Button>
-          {status?.ok && (
-            <span className="text-sm text-success">
-              {status.count} registro(s) acessível(eis).
-            </span>
-          )}
-          {status && !status.ok && (
-            <span className="text-sm text-destructive">{status.message}</span>
-          )}
-        </div>
-      </Card>
+            <div className="space-y-2">
+              <Label htmlFor="sb-key">
+                Service role key {conn?.has_key && <span className="text-xs text-muted-foreground">(deixe em branco para manter a atual)</span>}
+              </Label>
+              <Input
+                id="sb-key"
+                type="password"
+                value={serviceKey}
+                onChange={(e) => setServiceKey(e.target.value)}
+                placeholder={conn?.has_key ? "••••••••" : "Cole aqui a service_role key"}
+                className="font-mono"
+                autoComplete="off"
+              />
+              <p className="text-xs text-muted-foreground">
+                A chave fica armazenada no banco e nunca é exposta no frontend. Encontre em: Supabase → Project Settings → API → service_role.
+              </p>
+            </div>
 
-      <Card className="glass p-5 mt-4 flex items-start gap-3">
-        <LinkIcon className="size-5 text-primary mt-0.5" />
-        <div className="text-sm text-muted-foreground">
-          Para alterar URL, chave ou nome da tabela, peça uma mudança no código —
-          esses valores ficam fixos no cliente do Supabase externo.
-        </div>
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <Button
+                type="submit"
+                disabled={busy}
+                className="bg-gradient-primary text-primary-foreground hover:opacity-90 gap-2"
+              >
+                {busy ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
+                Salvar conexão
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={testConnection}
+                disabled={testing || !conn?.has_key}
+                className="gap-2"
+              >
+                {testing ? <Loader2 className="size-4 animate-spin" /> : <LinkIcon className="size-4" />}
+                Testar conexão
+              </Button>
+              {status?.ok && (
+                <span className="text-sm text-success">
+                  {status.count} registro(s) acessível(eis).
+                </span>
+              )}
+              {status && !status.ok && (
+                <span className="text-sm text-destructive">{status.message}</span>
+              )}
+            </div>
+          </form>
+        )}
       </Card>
     </section>
   );
 }
+
