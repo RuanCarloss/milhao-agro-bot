@@ -33,10 +33,8 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import {
-  externalMessagesSupabase,
-  EXTERNAL_MESSAGES_TABLE,
-} from "@/integrations/supabase/external-messages-client";
+import { useServerFn } from "@tanstack/react-start";
+import { listExternalMessages } from "@/lib/external-messages.functions";
 
 type MessageRow = {
   id: string;
@@ -69,45 +67,23 @@ function safeParse(d: string | null): Date | null {
 
 function Messages() {
   const queryClient = useQueryClient();
+  const fetchMessages = useServerFn(listExternalMessages);
 
   const msgs = useQuery<MessageRow[]>({
     queryKey: ["supabase-messages"],
     queryFn: async () => {
-      const { data, error } = await externalMessagesSupabase
-        .from(EXTERNAL_MESSAGES_TABLE)
-        .select("id, message, grupo, created_at")
-        .order("created_at", { ascending: false })
-        .limit(500);
-      if (error) throw error;
-      return ((data ?? []) as Array<{
-        id: string | number;
-        message: string | null;
-        grupo: string | null;
-        created_at: string | null;
-      }>).map((r) => ({
-        id: String(r.id),
-        message: r.message ?? "",
-        recipient: r.grupo,
-        date: r.created_at,
-      }));
+      const res = await fetchMessages();
+      if (res.error) throw new Error(res.error);
+      return res.data;
     },
     refetchInterval: 30000,
   });
 
   useEffect(() => {
-    const channel = externalMessagesSupabase
-      .channel("external-messages-changes")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: EXTERNAL_MESSAGES_TABLE },
-        () => {
-          queryClient.invalidateQueries({ queryKey: ["supabase-messages"] });
-        },
-      )
-      .subscribe();
-    return () => {
-      externalMessagesSupabase.removeChannel(channel);
-    };
+    const id = setInterval(() => {
+      queryClient.invalidateQueries({ queryKey: ["supabase-messages"] });
+    }, 30000);
+    return () => clearInterval(id);
   }, [queryClient]);
 
   const [search, setSearch] = useState("");
