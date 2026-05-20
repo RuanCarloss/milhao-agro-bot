@@ -9,10 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { getSettings, saveSettings } from "@/lib/n8n.functions";
-import {
-  externalMessagesSupabase,
-  EXTERNAL_MESSAGES_TABLE,
-} from "@/integrations/supabase/external-messages-client";
+import { pingExternalMessages } from "@/lib/external-messages.functions";
+
+const EXTERNAL_MESSAGES_TABLE = "Message-Agro-Bot";
 import { useAccess } from "@/lib/use-access";
 import { ShieldOff } from "lucide-react";
 import { toast } from "sonner";
@@ -129,15 +128,14 @@ function SupabaseMessagesInfo() {
     | null
   >(null);
 
+  const pingFn = useServerFn(pingExternalMessages);
   const testConnection = async () => {
     setTesting(true);
     setStatus(null);
     try {
-      const { count, error } = await externalMessagesSupabase
-        .from(EXTERNAL_MESSAGES_TABLE)
-        .select("*", { count: "exact", head: true });
-      if (error) throw error;
-      setStatus({ ok: true, count: count ?? 0 });
+      const res = await pingFn();
+      if (!res.ok) throw new Error(res.error ?? "Falha ao conectar");
+      setStatus({ ok: true, count: res.count });
       toast.success("Conexão OK!");
     } catch (err: any) {
       const msg = err?.message ?? "Falha ao conectar";

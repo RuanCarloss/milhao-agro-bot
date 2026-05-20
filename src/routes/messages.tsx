@@ -33,10 +33,8 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import {
-  externalMessagesSupabase,
-  EXTERNAL_MESSAGES_TABLE,
-} from "@/integrations/supabase/external-messages-client";
+import { useServerFn } from "@tanstack/react-start";
+import { listExternalMessages } from "@/lib/external-messages.functions";
 
 type MessageRow = {
   id: string;
