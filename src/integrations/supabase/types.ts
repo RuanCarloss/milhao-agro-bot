@@ -110,6 +110,39 @@ export type Database = {
         }
         Relationships: []
       }
+      supabase_messages_settings: {
+        Row: {
+          base_url: string
+          created_at: string
+          id: string
+          service_role_key: string
+          singleton: boolean
+          table_name: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          base_url: string
+          created_at?: string
+          id?: string
+          service_role_key: string
+          singleton?: boolean
+          table_name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          base_url?: string
+          created_at?: string
+          id?: string
+          service_role_key?: string
+          singleton?: boolean
+          table_name?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       user_permissions: {
         Row: {
           created_at: string
