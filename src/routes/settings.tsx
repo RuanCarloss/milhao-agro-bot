@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Save, Link as LinkIcon, Database } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { Button } from "@/components/ui/button";
@@ -9,14 +9,17 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card } from "@/components/ui/card";
 import { getSettings, saveSettings } from "@/lib/n8n.functions";
-import { pingExternalMessages } from "@/lib/external-messages.functions";
-
-const EXTERNAL_MESSAGES_TABLE = "Message-Agro-Bot";
+import {
+  getMessagesConnection,
+  saveMessagesConnection,
+  pingExternalMessages,
+} from "@/lib/external-messages.functions";
 import { useAccess } from "@/lib/use-access";
 import { ShieldOff } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/settings")({ component: SettingsPage });
+
 
 function SettingsPage() {
   const access = useAccess();
