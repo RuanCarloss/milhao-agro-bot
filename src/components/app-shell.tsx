@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Bot, LayoutDashboard, MessageSquare, Settings, LogOut, Loader2, Shield, Sparkles } from "lucide-react";
+import { Bot, MessageSquare, Settings, LogOut, Loader2, Shield, Sparkles } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
 import { Button } from "@/components/ui/button";
 import { useAccess } from "@/lib/use-access";
@@ -24,7 +24,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   }
 
   const navItems = [
-    { to: "/", label: "Dashboard", icon: LayoutDashboard, show: true },
     { to: "/messages", label: "Mensagens", icon: MessageSquare, show: true },
     { to: "/changelog", label: "Atualizações", icon: Sparkles, show: true },
     { to: "/settings", label: "Conexões", icon: Settings, show: access.canEditSettings },
